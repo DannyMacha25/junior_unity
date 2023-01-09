@@ -1,4 +1,4 @@
-Changes made to Unity Scripts:
+Changes made to Unity Assets Scripts:
 1. MapDisplay.cs:\
 	`//transform.localPosition = mapPos;`\
     `//transform.localRotation = mapRot;`\
