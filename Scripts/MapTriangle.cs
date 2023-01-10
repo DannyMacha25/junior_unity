@@ -15,9 +15,11 @@ public class MapTriangle : MonoBehaviour
     public GameObject triangle;
     public float uiMapSizeX;
     public float uiMapSizeY;
-
+    public bool flipX;
+    public bool flipY;
 
     private UnityEngine.Vector3 currPos;
+    private UnityEngine.Quaternion currRot;
     private UnityEngine.Vector2 mapSize = new Vector2(0,0);
 
     void Start()
@@ -31,7 +33,12 @@ public class MapTriangle : MonoBehaviour
     {
         Debug.Log((float)msg.transform.translation.x);
         currPos = CalculateTrianglePosition(mapSize, msg);
-        Debug.Log("e");
+        currRot = new UnityEngine.Quaternion();
+        currRot.x = (float)msg.transform.rotation.x;
+        currRot.y = (float)msg.transform.rotation.y;
+        currRot.z = (float)msg.transform.rotation.z;
+        currRot.w = (float)msg.transform.rotation.w;
+
     }
 
     void mapCB(OccupancyGrid msg)
@@ -42,9 +49,19 @@ public class MapTriangle : MonoBehaviour
 
     UnityEngine.Vector3 CalculateTrianglePosition(Vector2 size,TransformStamped msg)
     {
+
         UnityEngine.Vector3 trianglePos;
         float scaleX = size.x / uiMapSizeX;
         float scaleY = size.y / uiMapSizeY;
+
+        if (flipX)
+        {
+            scaleX *= -1f;
+        }
+        if (flipY)
+        {
+            scaleY *= -1f;
+        }
 
         trianglePos = new UnityEngine.Vector3((float)msg.transform.translation.x/scaleX,0f,(float)msg.transform.translation.y/scaleY);
         return trianglePos;
@@ -53,5 +70,7 @@ public class MapTriangle : MonoBehaviour
     void Update()
     {
         triangle.GetComponent<UnityEngine.Transform>().localPosition = currPos;
+        triangle.GetComponent<UnityEngine.Transform>().rotation = currRot;
+        
     }
 }
