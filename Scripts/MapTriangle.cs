@@ -31,7 +31,7 @@ public class MapTriangle : MonoBehaviour
 
     void posCB(TransformStamped msg)
     {
-        Debug.Log((float)msg.transform.translation.x);
+        //Debug.Log((float)msg.transform.translation.x);
         currPos = CalculateTrianglePosition(mapSize, msg);
         currRot = new UnityEngine.Quaternion();
         currRot.x = (float)msg.transform.rotation.x;
