@@ -14,10 +14,11 @@ public class LidarVisualization : MonoBehaviour
     public GameObject pointRender;
     [Header("Settings")]
     public Color circleColor;
-    public Color lineColorStart,lineColorEnd;
+    public Color lineColor;
     public Vector2 startPosition;
     public bool showLines, showCircles;
     public bool flipX, flipY;
+    public float lineWidth = 0.2f;
     public float spread;
     public float rotation;
     [Header("Debug")]
@@ -45,6 +46,10 @@ public class LidarVisualization : MonoBehaviour
         lr.positionCount = positions.Count;
 
     }
+    /*
+     * Populate game oobject list with sprite objects
+     * 
+     */
     void PopulateGameObjectList(List<GameObject> objects,int length)
     {
         for(int x = 0; x < length; x++)
@@ -54,6 +59,10 @@ public class LidarVisualization : MonoBehaviour
             objects.Add(p);
         }
     }
+    /*
+     * Makes the circle sprites visible and updates their positions
+     * 
+     */
     void DisplayPoints(List<Vector2> points,List<GameObject> objects)
     {  
         for(int i = 0; i < numberAngles; i++)
@@ -67,15 +76,29 @@ public class LidarVisualization : MonoBehaviour
             else
             {
                 p.transform.position = startPosition;
+                if (flipX)
+                {
+                    p.transform.position = new Vector3(p.transform.position.x * -1, p.transform.position.y, p.transform.position.z);
+                }
+                if (flipY)
+                {
+                    p.transform.position = new Vector3(p.transform.position.x, p.transform.position.y * -1, p.transform.position.z);
+                }
             }
         }
     }
 
+    /*
+     * Displays the line renderer and updates all of the points
+     * 
+     */
     void DrawLines(List<Vector2> points)
     {
+        lr.startWidth = lineWidth;
+        lr.endWidth = lineWidth;
         lr.positionCount = points.Count;
-        lr.startColor = lineColorStart;
-        lr.endColor = lineColorEnd;
+        lr.startColor = lineColor;
+        lr.endColor = lineColor;
         for (int i = 0; i < points.Count; i++)
         {
             if (points[i].x != Mathf.Infinity && points[i].y != Mathf.Infinity)
@@ -95,6 +118,10 @@ public class LidarVisualization : MonoBehaviour
             }
         }
     }
+    /*
+     * Unecessary :3
+     * 
+     */
     void FlushPointObjects()
     {
         GameObject g = this.gameObject;
@@ -103,6 +130,10 @@ public class LidarVisualization : MonoBehaviour
             Object.Destroy(g.transform.GetChild(i).gameObject);
         }
     }
+    /*
+     * Calculate 2D point given an angle and distance (based of startPosition)
+     * 
+     */
     Vector2 CalculatePoint(float angle, float distance)
     {
         Vector2 point = new Vector2();
@@ -127,8 +158,10 @@ public class LidarVisualization : MonoBehaviour
         return point;
     }
 
-
-
+    /*
+     * Populates the point list with calculated points
+     * 
+     */
     List<Vector2> PopulatePointList(float[] distances,float minAngle, float maxAngle, float increment)
     {
         int numAngles = distances.Length;
@@ -141,6 +174,10 @@ public class LidarVisualization : MonoBehaviour
         return points;
     }
 
+    /*
+     * Just sets all the points on the linerenderer to a non viewablle spot
+     * 
+     */
     void ClearLines(List<Vector2> points)
     {
         lr.positionCount = points.Count;
@@ -151,16 +188,19 @@ public class LidarVisualization : MonoBehaviour
         }
     }
 
+    /*
+     * Gives all the circles an alpha of 0
+     * 
+     */
     void ClearCirclees()
     {
         Color clear = new Color(0, 0, 0, 0);
         foreach (SpriteRenderer point in this.GetComponentsInChildren<SpriteRenderer>())
         {
-            point.color = clear; ;
+            point.color = clear;
         }
     }
 
-    // Update is called once per frame
     void Update()
     {
         foreach(SpriteRenderer point in this.GetComponentsInChildren<SpriteRenderer>())
