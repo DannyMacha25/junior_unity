@@ -4,7 +4,13 @@ using UnityEngine;
 using Ros_CSharp;
 using sm = Messages.sensor_msgs;
 
-
+/* NOTES:
+ * 1. I should probably make the color of the center dot on the circle visualization
+ *  a different color.
+ * 
+ * 
+ * 
+ */
 public class LidarVisualization : MonoBehaviour
 {
     [Header("Ros")]
@@ -21,7 +27,7 @@ public class LidarVisualization : MonoBehaviour
     public float lineWidth = 0.2f;
     public float spread;
     public float rotation;
-    [Header("Debug")]
+    [Header("Debug - Don't worry abt this :3")]
     public int pointCount;
     //TODO NEXT: EXTRA SETTINGS, LINES, CHANGE SHAPE
     private NodeHandle nh;
@@ -94,22 +100,32 @@ public class LidarVisualization : MonoBehaviour
      */
     void DrawLines(List<Vector2> points)
     {
-        lr.startWidth = lineWidth;
-        lr.endWidth = lineWidth;
+        //lr.startWidth = lineWidth;
+        //lr.endWidth = lineWidth;
         lr.positionCount = points.Count;
         lr.startColor = lineColor;
         lr.endColor = lineColor;
+        Vector3 prevValidPoint = new Vector3(0, 0, -2.7f);
         for (int i = 0; i < points.Count; i++)
         {
-            if (points[i].x != Mathf.Infinity && points[i].y != Mathf.Infinity)
+            if (points[i].x != Mathf.Infinity && points[i].y != Mathf.Infinity && !double.IsNaN(points[i].x) && !double.IsNaN(points[i].y))
             {
-                Vector3 p = new Vector3((points[i].x + startPosition.x) * spread, (points[i].y + startPosition.y) * spread, -1);
-                lr.SetPosition(i, points[i]);
+                Vector3 p = new Vector3(points[i].x, points[i].y, -2.7f);
+                lr.SetPosition(i, p);
+                prevValidPoint = p;
             }
             else
             {
-                Vector3 p = new Vector3(0, 0, 229);
-                lr.SetPosition(i, p);
+                if (points[i + 1].x != Mathf.Infinity && points[i + 1].y != Mathf.Infinity && !double.IsNaN(points[i + 1].x) && !double.IsNaN(points[i + 1].y))
+                {
+                    Vector3 p = new Vector3(points[i + 1].x, points[i + 1].y, 229);
+                    lr.SetPosition(i, p);
+                }
+                else 
+                {
+                    Vector3 p = new Vector3(prevValidPoint.x, prevValidPoint.y, 229);
+                    lr.SetPosition(i, p);
+                }
             }
             if(i > points.Count - pointCount)
             {
