@@ -11,8 +11,15 @@ using sm = Messages.sensor_msgs;
  * 
  * 
  */
+public enum SmoothingMethod
+{
+    Modulo,
+    Averaging,
+    None
+}
 public class LidarVisualization : MonoBehaviour
 {
+
     [Header("Ros")]
     public ROSCore rosmaster;
     public string topic;
@@ -28,6 +35,7 @@ public class LidarVisualization : MonoBehaviour
     public float spread;
     public float rotation;
     public int lineSmoothing = 1;
+    public SmoothingMethod smoothing;
     [Header("Debug - Don't worry abt this :3")]
     public int pointCount;
     //TODO NEXT: EXTRA SETTINGS, LINES, CHANGE SHAPE
@@ -43,7 +51,7 @@ public class LidarVisualization : MonoBehaviour
         nh.subscribe<sm.LaserScan>(topic,10,LaserCB);
         lr = this.GetComponent<LineRenderer>();
     }
-    
+ 
     void LaserCB(sm.LaserScan msg)
     {
         firstCB = true;
@@ -111,16 +119,42 @@ public class LidarVisualization : MonoBehaviour
         {
             if (points[i].x != Mathf.Infinity && points[i].y != Mathf.Infinity && !double.IsNaN(points[i].x) && !double.IsNaN(points[i].y))
             {
-                if (lineSmoothing > 0 && i % lineSmoothing == 0)
-                {
-                    Vector3 p = new Vector3(points[i].x, points[i].y, -2.7f);
-                    lr.SetPosition(i, p);
-                    prevValidPoint = p;
+                Vector3 p = new Vector3(points[i].x, points[i].y, -2.7f);
+                switch (smoothing) {
+                    case SmoothingMethod.Modulo:
+                        if(i % lineSmoothing != 0)
+                        {
+                            lr.SetPosition(i, prevValidPoint);
+                            continue;
+                        }
+                        lr.SetPosition(i, p);
+                        prevValidPoint = p;
+                        break;
+                    case SmoothingMethod.Averaging:
+                        uint accessed = 1;
+                        if (i + lineSmoothing < points.Count)
+                        {
+                            for (int j = 1; j < lineSmoothing; j++)
+                            {
+                                if (points[i + j].x != Mathf.Infinity && points[i + j].y != Mathf.Infinity && !double.IsNaN(points[i + j].x) && !double.IsNaN(points[i + j].y))
+                                {
+                                    accessed++;
+                                    p.x += points[i + j].x;
+                                    p.y += points[i + j].y;
+                                }
+                            }
+                            p.x /= accessed;
+                            p.y /= accessed;
+                            prevValidPoint = p;
+                            lr.SetPosition(i, p);
+                        }
+                        break;
+                    case SmoothingMethod.None:
+                        lr.SetPosition(i, p);
+                        prevValidPoint = p;
+                        break;
                 }
-                else
-                {
-                    lr.SetPosition(i, prevValidPoint);
-                }
+
             }
             else
             {
@@ -140,18 +174,6 @@ public class LidarVisualization : MonoBehaviour
                 Vector3 p = new Vector3(0, 0, 229);
                 lr.SetPosition(i, p);
             }
-        }
-    }
-    /*
-     * Unecessary :3
-     * 
-     */
-    void FlushPointObjects()
-    {
-        GameObject g = this.gameObject;
-        for (var i = g.transform.childCount - 1; i >= 0; i--)
-        {
-            Object.Destroy(g.transform.GetChild(i).gameObject);
         }
     }
     /*
